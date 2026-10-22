@@ -1,0 +1,11 @@
+{
+  "name": "przemokam-claude-mods",
+  "owner": { "name": "przemokam" },
+  "plugins": [
+    {
+      "name": "session-band",
+      "source": "./session-band",
+      "description": "Band above the prompt: context fill, 5h and 7d limits, session cost, a new-chat handoff button, REC masking and cliamp radio controls, in three skins"
+    }
+  ]
+}

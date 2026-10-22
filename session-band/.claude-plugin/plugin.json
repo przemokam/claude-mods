@@ -1,0 +1,6 @@
+{
+  "name": "session-band",
+  "version": "0.1.0",
+  "description": "Band above the prompt: context fill, 5h and 7d limits, session cost, a handoff button and cliamp radio controls",
+  "types": "./types/index.d.ts"
+}
