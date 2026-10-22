@@ -47,9 +47,40 @@ claude plugin install session-band --marketplace przemokam/claude-mods
 
 In the desktop app, where `/plugin` does not run: click + next to the prompt box, then Plugins, Add marketplace with `przemokam/claude-mods`, then Add plugin.
 
+### Radio: installing cliamp
+
+The radio strip drives [cliamp](https://github.com/bjarneo/cliamp) (MIT), a terminal music player with about 58,000 online radio stations. Without cliamp the strip stays offline and everything else in the band works.
+
+**macOS**
+
+```bash
+brew install bjarneo/cliamp/cliamp
+```
+
+**Windows** (PowerShell, no admin rights needed)
+
+```powershell
+$dir = "$env:LOCALAPPDATA\Programs\cliamp"
+Invoke-WebRequest https://github.com/bjarneo/cliamp/releases/latest/download/cliamp-windows-amd64.zip -OutFile "$env:TEMP\cliamp.zip"
+Expand-Archive "$env:TEMP\cliamp.zip" -DestinationPath $dir -Force
+[Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ";$dir\cliamp-windows-amd64", 'User')
+```
+
+The zip holds `cliamp.exe` and the codec DLLs it needs. Open a new terminal so the new `Path` applies, then run `cliamp` and press `R` to browse radio stations. cliamp keeps its settings in `%APPDATA%\cliamp`.
+
+Optional, for YouTube, SoundCloud and AAC/Opus streams (both must be on `Path`):
+
+```powershell
+winget install Gyan.FFmpeg
+winget install yt-dlp.yt-dlp
+```
+
+**Linux**: see [cliamp's install guide](https://github.com/bjarneo/cliamp#install).
+
+> **Platform note.** For now the band calls cliamp only at the Homebrew path `/opt/homebrew/bin/cliamp` and starts it through `/bin/sh`, so on Windows and Linux the radio strip stays offline even with cliamp installed (cliamp itself works). On Windows the **New chat** button and REC's masking of your login name also read `/usr/bin/printenv`, which Windows does not have. The context gauge, the limits, the cost, the skins and the rest of REC work everywhere.
+
 ### Notes
 
-- The radio expects cliamp at `/opt/homebrew/bin/cliamp` (`brew install bjarneo/cliamp/cliamp`); without it the strip stays offline and everything else works.
 - The context gauge counts against 500K tokens (`COMPACT_AT` in `hooks/register.tsx`); keep it in step with `autoCompactWindow` in your `~/.claude/settings.json`.
 - Tests: `claude plugin test session-band`.
 
