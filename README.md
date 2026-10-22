@@ -17,9 +17,17 @@ A band above the prompt that shows, at a glance:
 
 Three skins, switched live with the **◐** button in the band (hotkey `s`) or `/skin [neon|hacker|pro|list]`. The choice is remembered between sessions.
 
-| neon | hacker | pro |
-| --- | --- | --- |
-| ![neon](screenshots/neon.png) | ![hacker](screenshots/hacker.png) | ![pro](screenshots/pro.png) |
+**neon**
+
+![neon skin](screenshots/neon.webp)
+
+**hacker**
+
+![hacker skin](screenshots/hacker.webp)
+
+**pro**
+
+![pro skin](screenshots/pro.webp)
 
 ### Install
 
