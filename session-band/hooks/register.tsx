@@ -18,8 +18,11 @@ const recWords = atom({ plugin: 'session-band', key: 'recWords' } as const, [])
 const user = atom({ plugin: 'session-band', key: 'user' } as const, null)
 const skin = atom({ plugin: 'session-band', key: 'skin' } as const, 'neon')
 
-// Homebrew's path: a mod's child process does not get a login shell's PATH.
-const CLIAMP = '/opt/homebrew/bin/cliamp'
+// Where cliamp usually lands. A mod's child process does not get a login shell's PATH (the macOS
+// app's has no Homebrew), and on Windows the desktop app keeps the Path it started with, so a
+// folder the README's install adds is checked directly; the bare name, from PATH, comes last.
+const UNIX_CLIAMP = ['/opt/homebrew/bin/cliamp', '/usr/local/bin/cliamp', '~/.local/bin/cliamp', '~/go/bin/cliamp']
+const WINDOWS_CLIAMP = ['~\\AppData\\Local\\Programs\\cliamp\\cliamp-windows-amd64\\cliamp.exe', '~\\go\\bin\\cliamp.exe']
 // autoCompactWindow in ~/.claude/settings.json (set 2026-10-21); keep the two in step.
 const COMPACT_AT = 500_000
 const WARN_AT = 300_000
@@ -114,7 +117,7 @@ async function locate($: Engine) {
 async function readRadio($: Engine) {
   let next: Radio = OFF
   try {
-    const r = await $.process.run([CLIAMP, 'remote', 'state'], { timeoutMs: 5000 })
+    const r = await $.process.run([(await getHost($)).cliamp, 'remote', 'state'], { timeoutMs: 5000 })
     if (r.exitCode === 0) {
       const s = JSON.parse(r.stdout).snapshot ?? {}
       const song = s.track?.artist && s.track?.title ? `${s.track.artist} - ${s.track.title}` : (s.track?.stream_title ?? null)
@@ -137,8 +140,35 @@ async function readRadio($: Engine) {
   }
 }
 
+type Host = { os: 'unix' | 'windows'; home: string; cliamp: string }
+
+// No API names the system: /bin/sh is there on macOS and Linux and never on Windows, where cmd.exe
+// gives the home folder. Read once per load; cliamp's path again when the radio is started.
+let host: Host | null = null
+
+async function detectHost($: Engine): Promise<Host> {
+  const os = (await $.fs.exists('/bin/sh')) ? 'unix' : 'windows'
+  const argv = os === 'unix' ? ['/bin/sh', '-c', 'printf %s "$HOME"'] : ['cmd.exe', '/d', '/c', 'echo %USERPROFILE%']
+  const home = await $.process.run(argv, { timeoutMs: 5000 }).then(r => (r.exitCode === 0 ? r.stdout.trim() : ''), () => '')
+  return { os, home, cliamp: await findCliamp($, os, home) }
+}
+
+async function findCliamp($: Engine, os: Host['os'], home: string): Promise<string> {
+  for (const candidate of os === 'unix' ? UNIX_CLIAMP : WINDOWS_CLIAMP) {
+    if (candidate.startsWith('~') && home === '') continue
+    const path = candidate.replace(/^~/, home)
+    if (await $.fs.exists(path)) return path
+  }
+  return os === 'unix' ? 'cliamp' : 'cliamp.exe'
+}
+
+async function getHost($: Engine): Promise<Host> {
+  host ??= await detectHost($)
+  return host
+}
+
 async function cliamp($: Engine, args: string[], settleMs: number) {
-  await $.process.run([CLIAMP, ...args], { timeoutMs: 5000 })
+  await $.process.run([(await getHost($)).cliamp, ...args], { timeoutMs: 5000 }).catch(() => undefined)
   await $.clock.sleep(settleMs)
   await readRadio($)
 }
@@ -149,8 +179,23 @@ async function playOrPause($: Engine) {
     await cliamp($, ['toggle'], 300)
     return
   }
-  // Detached, so the music outlives a mod reload and the session.
-  await $.process.run(['/bin/sh', '-c', `nohup ${CLIAMP} --daemon --auto-play >/dev/null 2>&1 &`], { timeoutMs: 5000 })
+  // Detached, so the music outlives a mod reload and the session; cliamp may have been installed
+  // since the band loaded, so it is looked for again.
+  const h = await getHost($)
+  h.cliamp = await findCliamp($, h.os, h.home)
+  // The path goes to sh as $0 and to PowerShell in single quotes (a quote inside doubled), so a
+  // space or quote in it is not read as syntax.
+  const argv =
+    h.os === 'unix'
+      ? ['/bin/sh', '-c', 'nohup "$0" --daemon --auto-play >/dev/null 2>&1 &', h.cliamp]
+      : [
+          'powershell.exe',
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          `Start-Process -WindowStyle Hidden -FilePath '${h.cliamp.replaceAll("'", "''")}' -ArgumentList '--daemon','--auto-play'`,
+        ]
+  await $.process.run(argv, { timeoutMs: 10_000 }).catch(() => undefined)
   await $.clock.sleep(1500)
   await readRadio($)
 }
@@ -162,9 +207,10 @@ async function changeVolume($: Engine, delta: number) {
 }
 
 async function handoff($: Engine, surface: RenderSurface) {
-  const home = (await $.process.run(['/usr/bin/printenv', 'HOME'])).stdout.trim()
+  const { os, home } = await getHost($)
   const project = (await read($, place))?.project ?? 'session'
-  const path = `${home}/.claude/handoffs/${project}-${stamp(Date.now())}.md`
+  const name = `${project}-${stamp(Date.now())}.md`
+  const path = os === 'windows' ? `${home}\\.claude\\handoffs\\${name}` : `${home}/.claude/handoffs/${name}`
   const resume = `Read ${path} and continue the work from where the previous conversation stopped.`
   const copied = await $.ui.copy({ text: resume, surface })
   void $.prompt.submit({
@@ -252,8 +298,8 @@ export const register: Register = on => {
     await update($, skin, () => (typeof storedSkin === 'string' && storedSkin in SKINS ? (storedSkin as SkinName) : 'neon'))
     await update($, rec, () => storedRec === true)
     await update($, recWords, () => (Array.isArray(storedWords) ? storedWords.filter((w): w is string => typeof w === 'string') : []))
-    const home = (await $.process.run(['/usr/bin/printenv', 'HOME'])).stdout.trim()
-    await update($, user, () => home.split('/').filter(Boolean).pop() ?? null)
+    host = await detectHost($)
+    await update($, user, () => host?.home.split(/[\\/]/).filter(Boolean).pop() ?? null)
     await Promise.all([measure($), locate($), readRadio($)])
     // A new song or station redraws the band; an unchanged player does not.
     $.clock.every(10_000, () => void readRadio($))

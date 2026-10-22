@@ -26,7 +26,7 @@ test('the band shows the project, the context, both limits and the radio as sepa
   on('process.run', (_, e) => {
     const args = e.argv.join(' ')
     if (args.includes('--git-common-dir')) return { value: { exitCode: 0, stdout: '/Users/x/my-project/.git\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
-    if (args.startsWith('/usr/bin/printenv')) return { value: { exitCode: 0, stdout: '/Users/x\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    if (args.startsWith('/bin/sh -c printf')) return { value: { exitCode: 0, stdout: '/Users/x\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
     if (args.includes('--abbrev-ref')) return { value: { exitCode: 0, stdout: 'feat/new-band\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
     return {
       value: {
@@ -48,6 +48,7 @@ test('the band shows the project, the context, both limits and the radio as sepa
     }
   })
   on('clock.every', () => ({ value: undefined }))
+  on('fs.exists', (_, e) => ({ value: e.path === '/bin/sh' }))
 
   await $.session.start({ cwd: '/Users/x/my-project', surface: 'desktop', isInteractive: true })
 

@@ -27,6 +27,7 @@ test('a session with no limit reading shows the last one any session saw, until 
   on('session.usage', () => ({ value: { startedAt: Date.now(), context: { tokens: 10_000, window: 1_000_000, percent: 1 }, rateLimits } }))
   on('process.run', () => ({ value: { exitCode: 1, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }))
   on('clock.every', () => ({ value: undefined }))
+  on('fs.exists', (_, e) => ({ value: e.path === '/bin/sh' }))
   on('session.measure', (_, e) => ({ changed: e.changed }))
 
   await $.session.start({ cwd: '/Users/x/project', surface: 'desktop', isInteractive: true })

@@ -28,11 +28,12 @@ test('the skin button and /skin switch the band live, keep every control and rem
     const args = e.argv.join(' ')
     const ok = (stdout: string) => ({ value: { exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
     if (args.includes('--git-common-dir')) return ok('/Users/x/MyProject/.git\n')
-    if (args.startsWith('/usr/bin/printenv')) return ok('/Users/x\n')
+    if (args.startsWith('/bin/sh -c printf')) return ok('/Users/x\n')
     if (args.includes('--abbrev-ref')) return ok('main\n')
     return ok(JSON.stringify({ snapshot: { state: 'playing', track: { title: 'Divine', artist: '1000 Handz', station: 'EDM' }, index: 3, total: 15, volume: -21 } }))
   })
   on('clock.every', () => ({ value: undefined }))
+  on('fs.exists', (_, e) => ({ value: e.path === '/bin/sh' }))
 
   await $.session.start({ cwd: '/Users/x/MyProject', surface: 'desktop', isInteractive: true })
 

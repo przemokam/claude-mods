@@ -77,7 +77,9 @@ winget install yt-dlp.yt-dlp
 
 **Linux**: see [cliamp's install guide](https://github.com/bjarneo/cliamp#install).
 
-> **Platform note.** For now the band calls cliamp only at the Homebrew path `/opt/homebrew/bin/cliamp` and starts it through `/bin/sh`, so on Windows and Linux the radio strip stays offline even with cliamp installed (cliamp itself works). On Windows the **New chat** button and REC's masking of your login name also read `/usr/bin/printenv`, which Windows does not have. The context gauge, the limits, the cost, the skins and the rest of REC work everywhere.
+The band finds cliamp by itself: on macOS and Linux at `/opt/homebrew/bin`, `/usr/local/bin`, `~/.local/bin` or `~/go/bin`, on Windows in the folder above or `~\go\bin`, and otherwise on `Path`. If you install cliamp while Claude is open, just press ▶: the band looks for it again.
+
+> **Windows status.** The Windows path (finding `cliamp.exe`, starting it hidden with PowerShell `Start-Process`, the home folder from `%USERPROFILE%`) is covered by tests that simulate Windows, but has not yet been run on a real Windows machine. If something does not work, please open an issue.
 
 ### Notes
 

@@ -51,11 +51,12 @@ test('the REC button masks a reply on screen; turning it off shows it again', as
   on('session.cwd', () => ({ value: '/Users/ann/my-project' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { window: 1_000_000 }, rateLimits: [] } }))
   on('process.run', (_, e) =>
-    e.argv[0] === '/usr/bin/printenv'
+    e.argv[0] === '/bin/sh'
       ? { value: { exitCode: 0, stdout: '/Users/ann\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
       : { value: { exitCode: 1, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } },
   )
   on('clock.every', () => ({ value: undefined }))
+  on('fs.exists', (_, e) => ({ value: e.path === '/bin/sh' }))
   on('ui.render', ($, e) => {
     const { Text } = $.ui.resolve(e)
     return <Text>{(e.props as { text?: string }).text ?? ''}</Text>
