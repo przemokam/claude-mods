@@ -9,7 +9,12 @@ export type Meter = {
 
 export type Place = { project: string; branch: string | null }
 
+export type Source = 'cliamp' | 'spotify'
+
 export type Radio = {
+  source: Source
+  // Spotify's own 0-100 volume; null for cliamp, which reports volumeDb.
+  volumePercent: number | null
   isRunning: boolean
   state: string
   station: string | null
@@ -28,6 +33,8 @@ declare module 'claude-code' {
       meter: Meter | null
       place: Place | null
       radio: Radio
+      genre: string | null
+      source: Source
       now: number
       lastTurnAt: number
       rec: boolean

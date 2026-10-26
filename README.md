@@ -11,7 +11,7 @@ A band above the prompt that shows, at a glance:
 - the 5-hour and 7-day usage limits with their reset times (account-wide: a session that has no reading yet shows the last one any session saw, until that window resets);
 - **REC**: masks e-mails, IPs, tokens, passwords and your login on screen while you record or share it (`/rec on|off|add <word>|remove <word>|list`);
 - **New chat**: asks Claude to write a handoff note to `~/.claude/handoffs/` and puts the prompt for the next conversation on the clipboard;
-- a radio strip for [cliamp](https://github.com/bjarneo/cliamp): play/pause, previous, next, volume.
+- a music strip for [cliamp](https://github.com/bjarneo/cliamp) radio or, on macOS, the Spotify app: play/pause, previous, next, volume, a genre list and a search field.
 
 ### Skins
 
@@ -80,6 +80,13 @@ winget install yt-dlp.yt-dlp
 The band finds cliamp by itself: on macOS and Linux at `/opt/homebrew/bin`, `/usr/local/bin`, `~/.local/bin` or `~/go/bin`, on Windows in the folder above or `~\go\bin`, and otherwise on `Path`. If you install cliamp while Claude is open, just press ▶: the band looks for it again.
 
 > **Windows status.** The Windows path (finding `cliamp.exe`, starting it hidden with PowerShell `Start-Process`, the home folder from `%USERPROFILE%`) is covered by tests that simulate Windows, but has not yet been run on a real Windows machine. If something does not work, please open an issue.
+
+### Music by genre
+
+Under the player sit a **Genre** list and a search field; the **♫** button (hotkey `g`) steps to the next genre, and `/genre` does the same from the prompt (`/genre jazz`, `/genre next`, `/genre list`).
+
+- **cliamp radio**: the list holds cliamp's own channels and 26 genres. Any word typed in the field searches cliamp's [Radio Browser](https://www.radio-browser.info) directory by station name and loads up to 20 MP3/AAC stations (for example `country`, `polska`, `k-pop`); ⏮ ⏭ move between them. The stations go into one local cliamp playlist, `session-band genre`, rewritten on each pick. `/genre cliamp` brings back cliamp's channels.
+- **Spotify (macOS)**: with the Spotify app installed, the **⇄** button (hotkey `m`) or `/genre spotify` switches the strip to the app and pauses cliamp; `/genre cliamp` or ⇄ switches back and pauses Spotify. It drives the app through AppleScript with the app's own login, so no developer account or API key. The list holds 26 genre playlists; a pasted Spotify link (playlist, album, artist or track) plays at once. AppleScript cannot search Spotify, so any other word opens the app's own search for it. The first use may ask macOS to let Claude control Spotify.
 
 ### Notes
 
