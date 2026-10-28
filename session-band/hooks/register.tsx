@@ -29,7 +29,8 @@ const WINDOWS_CLIAMP = ['~\\AppData\\Local\\Programs\\cliamp\\cliamp-windows-amd
 const COMPACT_AT = 500_000
 const WARN_AT = 300_000
 const ALARM_AT = 450_000
-const VOLUME_STEP = 3
+// 3 dB a press was heard as no change on 2026-10-28; 6 dB was clearly heard.
+const VOLUME_STEP = 6
 // Claude Code's prompt cache on a subscription lives an hour after the last request; past it the
 // next turn sends the whole context again (code.claude.com/docs/en/costs).
 const CACHE_TTL_MS = 60 * 60_000
